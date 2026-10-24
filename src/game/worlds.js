@@ -22,7 +22,7 @@ export const SURFACES = {
 };
 
 // Each world: look, music, default physics and which props skin to use.
-//   void   what is below the course (falling in sends the vehicle back, no penalty)
+//   void   what is below the course (falling in sends the vehicle back; the launch still counts)
 export const WORLDS = [
   {
     id: 1, name: 'Backyard Mayhem', short: 'Backyard',
