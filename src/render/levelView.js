@@ -316,7 +316,7 @@ export class LevelView {
         g.rotation.y = (d.yaw || 0) * DEG;
         const mat = texturedToy('boost', '#ffffff', [1, 2], { rough: 0.3, emissive: '#ffffff', ei: 0.6, emissiveMap: true });
         mat.map.rotation = -Math.PI / 2; mat.map.center.set(0.5, 0.5);
-        const pad = mesh(new THREE.PlaneGeometry(d.s?.[0] || 3, d.s?.[1] || 2.6), mat, [0, 0.04, 0]);
+        const pad = mesh(new THREE.PlaneGeometry(d.s?.[0] || 3, d.s?.[1] || 2.6), mat, [0, 0.08, 0]);
         pad.rotation.x = -Math.PI / 2;
         mesh(roundBox((d.s?.[0] || 3) + 0.3, 0.1, (d.s?.[1] || 2.6) + 0.3, 0.05), toy('#2a1f3d'), [0, 0.0, 0]);
         view.tex = mat.map;
