@@ -84,7 +84,7 @@ export class InfoPanel {
     const box = document.getElementById('game').getBoundingClientRect();
     const app = navigator.standalone || window.matchMedia('(display-mode: standalone)').matches || window.matchMedia('(display-mode: fullscreen)').matches;
     ctx.font = `${13 * f}px Arial, sans-serif`;
-    ctx.fillText(`Screen ${screen.width}×${screen.height} · view ${Math.round(box.width)}×${Math.round(box.height)} · window ${innerWidth}×${innerHeight} · ${app ? 'app' : 'browser'}`, x + 40, y + h - 150 * (V.ui > 1 ? 1.05 : 1));
+    ctx.fillText(`Screen ${screen.width}×${screen.height} · view ${Math.round(box.width)}×${Math.round(box.height)} · window ${innerWidth}×${innerHeight} · ${app ? 'app' : 'browser'}${window.__gapFix ? ' · fix' : ''}`, x + 40, y + h - 150 * (V.ui > 1 ? 1.05 : 1));
     // Check for updates
     const c = this.checkBtn;
     rr(ctx, c.x, c.y, c.w, c.h, 31); fs(ctx, this.status === 'checking' ? '#9a96a6' : '#3b8fe8', 5);

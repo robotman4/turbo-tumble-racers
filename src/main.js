@@ -23,17 +23,23 @@ function screenSize() {
   return [Math.round(r.width) || window.innerWidth, Math.round(r.height) || window.innerHeight];
 }
 
-// iOS home-screen apps with the black-translucent status bar can lay out a full-screen fixed
-// box one status bar too short in portrait, leaving a strip of page background at the bottom.
-// The app really covers the whole screen there, so stretch both canvases to the screen height.
+// iOS home-screen apps with the black-translucent status bar report a window one status bar
+// too short in portrait (e.g. 797 instead of 844). Fixed-position elements are clipped to that
+// short window, which left a strip of page background at the bottom, while normal page content
+// is still painted below it. So in that case the page and both canvases switch from fixed to
+// absolute layout at the full screen height. `window.__gapFix` shows in the info panel.
+const pageEls = [document.documentElement, document.body];
 function fixStandaloneGap() {
-  for (const c of [canvas, glCanvas]) c.style.height = '';
+  for (const el of [...pageEls, canvas, glCanvas]) for (const k of ['position', 'top', 'bottom', 'height']) el.style[k] = '';
+  window.__gapFix = false;
   const app = navigator.standalone || ['standalone', 'fullscreen'].some((m) => window.matchMedia(`(display-mode: ${m})`).matches);
   if (!app) return;
   const portrait = window.matchMedia('(orientation: portrait)').matches;
   const full = portrait ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
-  const h = canvas.getBoundingClientRect().height;
-  if (h < full - 2 && h > full - 120) for (const c of [canvas, glCanvas]) c.style.height = full + 'px';
+  const short = full - window.innerHeight;
+  if (short < 2 || short > 120) return;
+  for (const el of [...pageEls, canvas, glCanvas]) Object.assign(el.style, { position: 'absolute', top: '0', bottom: 'auto', height: full + 'px' });
+  window.__gapFix = true;
 }
 
 function resize() {
