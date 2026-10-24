@@ -29,8 +29,10 @@ export class InfoPanel {
 
   layout() {
     // Phones show the game smaller, so the panel text is made bigger there.
-    this.f = V.ui > 1 ? 1.5 : 1;
-    const w = Math.min(820 * this.f, V.w - V.safeL - V.safeR - 60), h = 700;
+    this.f = V.ui > 1 ? (V.portrait ? 1.5 : 1.2) : 1;
+    const w = Math.min(820 * this.f, V.w - V.safeL - V.safeR - 60);
+    // Portrait has room for a taller panel; the text wraps into more lines there.
+    const h = V.portrait ? Math.min(V.h - V.safeT - V.safeB - 80, 1500) : Math.min(740, V.h - 28);
     const x = (V.w - w) / 2, y = (V.h - h) / 2;
     this.box = { x, y, w, h };
     this.close.x = x + w - 26; this.close.y = y + 26;
@@ -78,6 +80,11 @@ export class InfoPanel {
     }
     ctx.font = `${16 * f}px Arial, sans-serif`; ctx.fillStyle = '#7a7090';
     ctx.fillText(`Version ${VERSION}`, x + 40, y + h - 128);
+    // Screen diagnostics, to help track down layout problems reported from a device.
+    const box = document.getElementById('game').getBoundingClientRect();
+    const app = navigator.standalone || window.matchMedia('(display-mode: standalone)').matches || window.matchMedia('(display-mode: fullscreen)').matches;
+    ctx.font = `${13 * f}px Arial, sans-serif`;
+    ctx.fillText(`Screen ${screen.width}×${screen.height} · view ${Math.round(box.width)}×${Math.round(box.height)} · window ${innerWidth}×${innerHeight} · ${app ? 'app' : 'browser'}`, x + 40, y + h - 150 * (V.ui > 1 ? 1.05 : 1));
     // Check for updates
     const c = this.checkBtn;
     rr(ctx, c.x, c.y, c.w, c.h, 31); fs(ctx, this.status === 'checking' ? '#9a96a6' : '#3b8fe8', 5);

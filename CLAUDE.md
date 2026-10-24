@@ -17,6 +17,8 @@ A 3D physics launch game: pull back, let go, the toy vehicle tumbles through a c
 - Bouncy jumps (jelly, trampolines) tend to arrive low, so a deck whose top is above the launch height gets hit on its side. Keep landing decks low or close.
 - In low gravity, friction is weak and vehicles slide off small islands. The sim adds rolling drag that grows as gravity drops, and moon islands are big.
 - Headless Chromium uses software GL and runs at about 3 fps. Game time is capped at 0.05 s per frame, so fades and intros take several real seconds. Wait for state (`fadeDir === 0`, `scene.ready`) instead of fixed sleeps, and skip the intro with `scene.rig.skipIntro()`.
+- Falling into the void used to give the launch back. The owner found that let you farm flips and pickups for free and then go for the finish. Now a splash costs the launch, like any other launch, and running out still ends in the friendly "try again". Easy Mode's unlimited launches is the gentle option.
+- The ⓘ panel shows screen, canvas and window sizes and whether it runs as an installed app. Ask the owner for that line when a device-only layout bug comes up.
 - `three` r186 removed `PCFSoftShadowMap`; use `PCFShadowMap`.
 - Portrait in an iOS home-screen app (black-translucent status bar) left a blue strip at the bottom: the full-screen fixed box came out about one status bar too short. Landscape was fine. `fixStandaloneGap()` in `main.js` stretches both canvases to the screen height when that happens. It couldn't be reproduced headless (it was simulated), so confirm it on a device.
 

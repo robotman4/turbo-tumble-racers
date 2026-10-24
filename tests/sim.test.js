@@ -34,15 +34,22 @@ test('running out of launches ends in the friendly out state', () => {
   sim.free();
 });
 
-test('falling off the course respawns and gives the launch back', () => {
+test('falling off the course respawns, and the launch still counts', () => {
   const sim = new Sim(flat({ parts: [{ t: 'box', p: [0, -0.5, 0], s: [6, 1, 6] }] }), panda);
   sim.launch(0, 1);
   const events = [];
   for (let i = 0; i < 600 && sim.state === 'fly'; i++) { sim.step(); events.push(...sim.drain()); }
   assert.ok(events.some((e) => e.type === 'splash'));
   assert.equal(sim.state, 'aim');
-  assert.equal(sim.launchesLeft, 3);
+  assert.equal(sim.launchesLeft, 2);
   assert.ok(Math.hypot(...sim.vehiclePose().p.filter((_, i) => i !== 1)) < 1, 'back at the launch spot');
+  sim.free();
+});
+
+test('splashing on the last launch ends in the friendly out state', () => {
+  const sim = new Sim(flat({ launches: 1, parts: [{ t: 'box', p: [0, -0.5, 0], s: [6, 1, 6] }] }), panda);
+  sim.launch(0, 1);
+  assert.equal(sim.runUntilRest(), 'out');
   sim.free();
 });
 

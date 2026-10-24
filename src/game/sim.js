@@ -620,11 +620,13 @@ export class Sim {
       return;
     }
 
-    // Fell into the void: back to where it was launched from, launch given back.
+    // Fell into the void: back to where it was launched from. The launch still counts,
+    // otherwise splashing on purpose would give endless free stunts and pickups.
     if (pos.y < this.killY) {
       if (st.state === 'finished') return;
       this.emit('splash', { p: [pos.x, this.killY + 4, pos.z] });
-      this.respawn(true);
+      this.respawn(false);
+      if (this.launchesLeft <= 0) { st.state = 'out'; this.emit('settle', { state: 'out' }); }
       return;
     }
 
@@ -677,7 +679,7 @@ export class Sim {
     this.emit('settle', { state: st.state });
   }
 
-  respawn(refund) {
+  respawn(refund = false) {
     const st = this.st, b = this.body();
     if (b.bodyType() !== RAPIER.RigidBodyType.Dynamic) b.setBodyType(RAPIER.RigidBodyType.Dynamic, true);
     b.setTranslation({ x: st.rest.p[0], y: st.rest.p[1] + 0.3, z: st.rest.p[2] }, true);

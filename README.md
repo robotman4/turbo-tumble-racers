@@ -52,7 +52,7 @@ WebAssembly) does the rigid-body physics.
 
 The sim runs on a fixed 60 Hz timestep. Vehicle speed and spin are capped, props have capped speed,
 and collision layers keep the camera ray and the aim preview off props. When a vehicle falls into the
-void (pool, chocolate, sea or space), it returns to where it was launched and the launch is given back.
+void (pool, chocolate, sea or space), it returns to where it was launched; the launch still counts, so splashing on purpose can't farm free stunts and pickups.
 When it lands on its side, it hops back upright. When it hasn't settled after 14 seconds, it is stopped,
 so a level can never get stuck.
 
