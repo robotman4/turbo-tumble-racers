@@ -1,8 +1,30 @@
-# Kids game template: notes for Claude
+# Turbo Tumble Racers (built from the kids game template): notes for Claude
+
+## This game
+
+A 3D physics launch game: pull back, let go, the toy vehicle tumbles through a course. It differs from the template in a few deliberate ways (the owner asked for them):
+
+- **3D:** Three.js renders on a WebGL canvas (`#gl`) under the template's 2D UI canvas (`#game`). A scene that shows 3D exposes `stage` ({ scene, camera }); `main.js` renders it before calling `scene.draw(ctx)` for the UI. Menus reuse one shared turntable stage (`menuStage()` in `scenes/title.js`).
+- **Physics:** Rapier (`@dimforge/rapier3d-compat`, pinned at 0.19.3, about 2.2 MB of JS with inlined wasm) in `src/game/sim.js`. The sim has no DOM, so the same code runs in the browser, in `npm test` and in the solver. It's loaded lazily (`scenes/nav.js` → `play.js`), and the precache limit in `vite.config.js` is raised so it works offline.
+- **Portrait is supported:** the short side is 768 logical units (`V.portrait`), and every layout uses `V.w`/`V.h`. The rotate screen is gone.
+- **Levels are data** (`src/game/levels/`). After changing one, run `npm run solve <id>` and `npm test`. The tests replay the recorded solutions and fail if any vehicle can't finish any level. `node scripts/probe.mjs <id> <vehicle>` shows where a grid of launches ends up.
+- **Save** is versioned (`SAVE_VERSION`, `MIGRATIONS` in `storage.js`); settings live in `save.settings`.
+- **Developer mode:** `?debug` or the bug button in Settings (`src/debug.js`). Test hook: `window.__startLevel(id)`; a play scene takes `scene.autoplay = [{ yaw, power }]` to replay solver launches.
+
+### Lessons from building it
+
+- In level data, `cyl.r` is the radius while `box.r` is a rotation. Feeding a radius into a rotation gave NaN quaternions: cylinders had no collision, and Rapier sometimes panicked with "unreachable". It looked like a Rapier bug until it was bisected. Only boxes take `r` as a rotation now.
+- Bouncy jumps (jelly, trampolines) tend to arrive low, so a deck whose top is above the launch height gets hit on its side. Keep landing decks low or close.
+- In low gravity, friction is weak and vehicles slide off small islands. The sim adds rolling drag that grows as gravity drops, and moon islands are big.
+- Headless Chromium uses software GL and runs at about 3 fps. Game time is capped at 0.05 s per frame, so fades and intros take several real seconds. Wait for state (`fadeDir === 0`, `scene.ready`) instead of fixed sleeps, and skip the intro with `scene.rig.skipIntro()`.
+- `three` r186 removed `PCFSoftShadowMap`; use `PCFShadowMap`.
+
 
 This repo is the starting point for small PWA games for kids aged 4–8. Each game lives in its own repo created from this template. Read this whole file before changing anything. It holds lessons learned the hard way on the first game (Rocket Hunt, `robotman4/rocketgame`).
 
 ## The owner and how to work with them
+
+- **Always merge finished work into `main`.** The owner asked for this: sessions push to their `claude/...` branch, then open a pull request and merge it into `main` so GitHub Pages deploys (only `main` may deploy to `github-pages`).
 
 - They do devops: bash, python, powershell, Linux, Docker, Git, Ansible. They are not a game developer.
 - Give clear, direct answers. Start with yes or no when it fits. No praise, no filler. If an explanation is needed, give it first, then the answer.
@@ -13,7 +35,7 @@ This repo is the starting point for small PWA games for kids aged 4–8. Each ga
 
 - **Players are 4–8:** simple but thoughtful.
 - **Almost no text:** guide the player with icons, arrows, glow and a pointing hand. Numbers are fine for a countdown.
-- **iPad landscape first, iPhone second:** when the two conflict, the iPad wins. Portrait shows a "rotate your device" screen (in `index.html`).
+- **iPad landscape first, iPhone second:** when the two conflict, the iPad wins. (The template showed a "rotate your device" screen in portrait. This game supports portrait instead; see above.)
 - **Never punishing:** no dying and no losing progress. Enemies may annoy (push, steal, block) but never take anything away for good. The owner may ask for a clearly marked harder mode as an exception. Rocket Hunt planets 21–30 have two hearts and restart the planet on the second hit, but have no game-over screen, and are announced with a warning sign, a red sky and spiky enemies.
 - **Scoring:** 1–3 stars, never 0. Finishing a level is always a success.
 - **Hints:** if the player has done nothing for about 5 seconds, show the hint hand or an arrow.
@@ -61,7 +83,8 @@ This repo is the starting point for small PWA games for kids aged 4–8. Each ga
 
 ## How to test
 
-- Run `npm run build && npx vite preview --port 4173`, then drive the game with Playwright. It's installed globally (`require('/opt/node22/lib/node_modules/playwright')`); Chromium lives in `/opt/pw-browsers`. Do not run `playwright install`.
+- `npm test` runs the unit tests and the level completability check (Node only, no browser).
+- Run `npm run build && npx vite preview --port 4173`, then drive the game with Playwright. For WebGL, launch Chromium with `--use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader`. It's installed globally (`require('/opt/node22/lib/node_modules/playwright')`); Chromium lives in `/opt/pw-browsers`. Do not run `playwright install`.
 - Test at 1024×768 (iPad) and 844×390 (iPhone). To simulate the notch, inject the style `#safe{padding:0 47px 21px 47px !important}`.
 - Drive scenes through `window.__game.scene` (call `onDown` with logical coordinates, or use real `page.mouse.click`). Take screenshots and look at them. Write automated play-throughs ("bots") that finish whole levels, and check for page errors.
 - Class names are minified in the build, so don't rely on `constructor.name`.

@@ -12,12 +12,14 @@ const VERSION = `${new Date().toISOString().slice(0, 10)} (${sha})`;
 const base = process.env.BASE_PATH || '/';
 
 // Change these per game.
-const NAME = 'My Game';
-const DESCRIPTION = 'A game for kids.';
-const THEME = '#1a1446';
+const NAME = 'Turbo Tumble Racers';
+const SHORT = 'Turbo Tumble';
+const DESCRIPTION = 'Launch funny toy vehicles through colourful 3D obstacle courses. A one-finger physics game for kids.';
+const THEME = '#2a7fd4';
 
 export default defineConfig({
   base,
+  build: { chunkSizeWarningLimit: 4000 },
   define: { __APP_VERSION__: JSON.stringify(VERSION) },
   plugins: [
     VitePWA({
@@ -26,10 +28,10 @@ export default defineConfig({
       includeAssets: ['icons/apple-touch-icon.png'],
       manifest: {
         name: NAME,
-        short_name: NAME,
+        short_name: SHORT,
         description: DESCRIPTION,
         display: 'fullscreen',
-        orientation: 'landscape',
+        orientation: 'any',
         background_color: THEME,
         theme_color: THEME,
         start_url: base,
@@ -40,7 +42,9 @@ export default defineConfig({
           { src: 'icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
-      workbox: { globPatterns: ['**/*.{js,css,html,png,svg}'] },
+      // The physics engine ships as WebAssembly inlined in a JS chunk (~2 MB), so raise the
+      // precache limit or it would silently be left out and the game would not work offline.
+      workbox: { globPatterns: ['**/*.{js,css,html,png,svg,wasm}'], maximumFileSizeToCacheInBytes: 8 * 1024 * 1024 },
     }),
   ],
 });

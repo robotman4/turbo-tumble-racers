@@ -8,6 +8,7 @@ let stale = false;
 // iOS keeps a context created before the first touch silent, even after resume().
 // So nothing is created until the first tap; music asked for before that waits here.
 let touched = false, pendingSong = null;
+const MUSIC_VOL = 0.3, SFX_VOL = 0.7;
 
 // iOS 17+: play like a media app, so audio is not tied to the silent switch and is
 // less likely to be cut off by other sounds.
@@ -20,10 +21,10 @@ function init() {
   ctx = new AC();
   ctx.onstatechange = () => { if (ctx && ctx.state === 'interrupted') stale = true; };
   master = ctx.createGain();
-  master.gain.value = save.muted ? 0 : 1;
+  master.gain.value = save.settings.muted ? 0 : 1;
   master.connect(ctx.destination);
-  musicBus = ctx.createGain(); musicBus.gain.value = 0.32; musicBus.connect(master);
-  sfxBus = ctx.createGain(); sfxBus.gain.value = 0.7; sfxBus.connect(master);
+  musicBus = ctx.createGain(); musicBus.gain.value = save.settings.music ? MUSIC_VOL : 0; musicBus.connect(master);
+  sfxBus = ctx.createGain(); sfxBus.gain.value = save.settings.sfx ? SFX_VOL : 0; sfxBus.connect(master);
   noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
   const d = noiseBuf.getChannelData(0);
   for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
@@ -86,12 +87,21 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
-export function isMuted() { return save.muted; }
+export function isMuted() { return save.settings.muted; }
 export function toggleMute() {
-  save.muted = !save.muted;
+  save.settings.muted = !save.settings.muted;
   persist();
-  if (!save.muted && ctx) { rebuild(); return; }
-  if (master) master.gain.setTargetAtTime(save.muted ? 0 : 1, ctx.currentTime, 0.05);
+  if (!save.settings.muted && ctx) { rebuild(); return; }
+  if (master) master.gain.setTargetAtTime(save.settings.muted ? 0 : 1, ctx.currentTime, 0.05);
+}
+// Separate music and sound effect switches (Settings). The mute button silences both.
+export function setMusicOn(on) {
+  save.settings.music = on; persist();
+  if (musicBus) musicBus.gain.setTargetAtTime(on ? MUSIC_VOL : 0, ctx.currentTime, 0.05);
+}
+export function setSfxOn(on) {
+  save.settings.sfx = on; persist();
+  if (sfxBus) sfxBus.gain.setTargetAtTime(on ? SFX_VOL : 0, ctx.currentTime, 0.05);
 }
 
 // ---------- low level voices ----------
@@ -198,6 +208,51 @@ const sfxDefs = {
     const t = ctx.currentTime;
     [67, 66, 65, 64].forEach((m, i) => osc('triangle', mtof(m), t + i * 0.3, i === 3 ? 0.7 : 0.28, 0.35, sfxBus, i === 3 ? mtof(60) : null));
   },
+  // ---- Turbo Tumble effects ----
+  stretch(k = 0) { const t = ctx.currentTime; osc('p12', 300 + k * 700, t, 0.05, 0.12, sfxBus); },
+  launch() {
+    const t = ctx.currentTime;
+    osc('sine', 180, t, 0.35, 0.5, sfxBus, 700);
+    noise(t, 0.4, 0.35, sfxBus, 'bandpass', 600, 3000);
+  },
+  crash(k = 1) {
+    const t = ctx.currentTime, v = Math.min(1, 0.25 + k * 0.12);
+    noise(t, 0.18 + k * 0.03, 0.55 * v, sfxBus, 'lowpass', 1400, 200);
+    osc('triangle', 160, t, 0.18, 0.5 * v, sfxBus, 60);
+  },
+  clack(k = 1) { const t = ctx.currentTime; osc('square', 500 + Math.random() * 400, t, 0.04, 0.12 * Math.min(1, k / 6), sfxBus, 300); },
+  crunch() {
+    const t = ctx.currentTime;
+    noise(t, 0.25, 0.6, sfxBus, 'bandpass', 1800, 400);
+    for (let i = 0; i < 3; i++) osc('square', 300 + Math.random() * 300, t + i * 0.03, 0.05, 0.15, sfxBus, 120);
+  },
+  boing() { const t = ctx.currentTime; osc('sine', 160, t, 0.4, 0.5, sfxBus, 620); osc('triangle', 330, t + 0.02, 0.3, 0.2, sfxBus, 900); },
+  spring() { const t = ctx.currentTime; for (let i = 0; i < 4; i++) osc('sine', 250 + i * 120, t + i * 0.04, 0.12, 0.3, sfxBus, 500 + i * 160); },
+  zap() { const t = ctx.currentTime; osc('sawtooth', 200, t, 0.35, 0.22, sfxBus, 1800); osc('p25', 600, t, 0.25, 0.15, sfxBus, 2400); },
+  boom() {
+    const t = ctx.currentTime;
+    osc('sine', 110, t, 0.6, 0.9, sfxBus, 30);
+    noise(t, 0.7, 0.8, sfxBus, 'lowpass', 1200, 80);
+  },
+  splash() { const t = ctx.currentTime; noise(t, 0.6, 0.6, sfxBus, 'bandpass', 900, 250); osc('sine', 600, t, 0.2, 0.2, sfxBus, 200); },
+  combo(n = 2) { const t = ctx.currentTime, b = 72 + Math.min(12, n * 2); [0, 4, 7].forEach((s, i) => osc('p25', mtof(b + s), t + i * 0.04, 0.1, 0.2, sfxBus)); },
+  secret() {
+    const t = ctx.currentTime;
+    [79, 83, 86, 91, 95].forEach((m, i) => osc('sine', mtof(m), t + i * 0.07, 0.5, 0.18, sfxBus));
+  },
+  honk() { const t = ctx.currentTime; osc('square', 350, t, 0.14, 0.18, sfxBus); osc('square', 440, t, 0.14, 0.14, sfxBus); osc('square', 350, t + 0.18, 0.2, 0.18, sfxBus); osc('square', 440, t + 0.18, 0.2, 0.14, sfxBus); },
+  rawr() {
+    const t = ctx.currentTime;
+    osc('sawtooth', 220, t, 0.45, 0.25, sfxBus, 110);
+    noise(t, 0.4, 0.25, sfxBus, 'bandpass', 700, 300);
+  },
+  bawk() {
+    const t = ctx.currentTime;
+    osc('p25', 700, t, 0.08, 0.25, sfxBus, 1100);
+    osc('p25', 900, t + 0.1, 0.08, 0.25, sfxBus, 1300);
+    osc('p25', 1000, t + 0.22, 0.25, 0.25, sfxBus, 600);
+  },
+  whee() { const t = ctx.currentTime; osc('sine', 500, t, 0.5, 0.18, sfxBus, 1400); },
   fanfare() {
     const t = ctx.currentTime;
     const seq = [[72, 0], [72, 0.12], [72, 0.24], [76, 0.36], [79, 0.6], [76, 0.78], [79, 0.9], [84, 1.05]];
@@ -290,7 +345,45 @@ const SONGS = {
       'E4 . G#4 . B4 . E5 . D5 . B4 . G#4 . E4 .',
     ],
   },
-  space: { bpm: 100, chords: ['Em', 'C', 'G', 'D'], lead: null, noDrums: true },
+  space: {
+    bpm: 108, chords: ['Em', 'C', 'G', 'D'], noDrums: true,
+    lead: [
+      'E5 . . . G5 . . . B5 . . . A5 . G5 .',
+      'E5 . . . . . . . C5 . . . - - - -',
+      'D5 . . . G5 . . . B5 . . . D6 . B5 .',
+      'A5 . . . . . . . F#5 . . . - - - -',
+    ],
+  },
+  // Bouncy sugar-rush tune for Candy Chaos.
+  candy: {
+    bpm: 150,
+    chords: ['F', 'C', 'Dm', 'A#', 'F', 'C', 'A#', 'C'],
+    lead: [
+      'A5 . C6 . A5 . F5 . G5 . A5 . C6 . . .',
+      'G5 . E5 . C5 . E5 . G5 . . . - - - -',
+      'F5 . A5 . D6 . C6 . A5 . F5 . D5 . . .',
+      'D5 . F5 . A#5 . . . A5 . G5 . F5 . . .',
+      'A5 . C6 . F6 . E6 . D6 . C6 . A5 . . .',
+      'G5 . . . C6 . . . E6 . D6 . C6 . . .',
+      'A#5 . A5 . G5 . F5 . D5 . F5 . A#5 . . .',
+      'C6 . . . G5 . . . C6 . - - G5 A5 B5 .',
+    ],
+  },
+  // Swaggering sea shanty feel for Pirate Panic.
+  pirate: {
+    bpm: 136,
+    chords: ['Dm', 'Dm', 'A', 'Dm', 'Dm', 'C', 'F', 'A'],
+    lead: [
+      'D5 . . . A4 . . . D5 . E5 . F5 . . .',
+      'E5 . D5 . C5 . . . D5 . . . - - - -',
+      'C#5 . . . E5 . . . A5 . G5 . E5 . . .',
+      'D5 . . . . . . . - - A4 . D5 . F5 .',
+      'A5 . . . F5 . . . D5 . F5 . A5 . . .',
+      'G5 . . . E5 . . . C5 . E5 . G5 . . .',
+      'F5 . A5 . C6 . A5 . F5 . . . E5 . D5 .',
+      'C#5 . . . E5 . . . A5 . . . - - - -',
+    ],
+  },
 };
 
 function chordTones(name) {

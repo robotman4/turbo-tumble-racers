@@ -7,7 +7,7 @@ let registration = null;
 
 // Set just before reloading into a new version, so the title screen can celebrate it.
 // Change the prefix per game, like KEY in storage.js.
-const FLAG = 'kidsgame.justUpdated';
+const FLAG = 'turbotumble.justUpdated';
 try {
   if (localStorage.getItem(FLAG)) { pwa.justUpdated = true; localStorage.removeItem(FLAG); }
 } catch (e) { /* ignore */ }

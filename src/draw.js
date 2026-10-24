@@ -134,3 +134,42 @@ export function drawArrow(ctx, x, y, angle, s = 1, color = '#ffe14d') {
   fs(ctx, color, 5);
   ctx.restore();
 }
+
+export const FONT = '"Arial Rounded MT Bold", "Trebuchet MS", "Helvetica Neue", Arial, sans-serif';
+
+// Chunky outlined text, used for numbers, titles and the few short labels.
+export function label(ctx, text, x, y, size, color = '#ffffff', align = 'center', lw) {
+  ctx.save();
+  ctx.font = `900 ${size}px ${FONT}`;
+  ctx.textAlign = align; ctx.textBaseline = 'middle';
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = lw ?? Math.max(4, size * 0.22);
+  ctx.strokeStyle = INK;
+  ctx.strokeText(text, x, y);
+  ctx.fillStyle = color;
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
+// Rounded panel with a drop shadow.
+export function panel(ctx, x, y, w, h, fill = '#fff8e8', r = 28, lw = 6) {
+  rr(ctx, x, y + 8, w, h, r); ctx.fillStyle = 'rgba(20,14,40,0.3)'; ctx.fill();
+  rr(ctx, x, y, w, h, r); fs(ctx, fill, lw);
+}
+
+// A coin icon for the HUD and shop.
+export function coinIcon(ctx, x, y, r) {
+  circle(ctx, x, y, r); fs(ctx, '#ffcc1a', Math.max(2, r * 0.2));
+  circle(ctx, x, y, r * 0.62); ctx.lineWidth = Math.max(1.5, r * 0.12); ctx.strokeStyle = '#c98a00'; ctx.stroke();
+  starPath(ctx, x, y, r * 0.42, r * 0.2); ctx.fillStyle = '#fff3a0'; ctx.fill();
+}
+
+// Padlock for locked worlds and levels.
+export function lockIcon(ctx, x, y, s = 1) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  ctx.beginPath(); ctx.arc(0, -10, 14, Math.PI, 0); ctx.lineWidth = 12; ctx.strokeStyle = INK; ctx.stroke();
+  ctx.lineWidth = 6; ctx.strokeStyle = '#c3cad8'; ctx.stroke();
+  rr(ctx, -20, -10, 40, 32, 7); fs(ctx, '#ffcc1a', 5);
+  circle(ctx, 0, 3, 5); ctx.fillStyle = INK; ctx.fill();
+  ctx.restore();
+}
