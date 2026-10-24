@@ -24,6 +24,8 @@ This repo is the starting point for small PWA games for kids aged 4–8. Each ga
 
 ## The owner and how to work with them
 
+- **Always merge finished work into `main`.** The owner asked for this: sessions push to their `claude/...` branch, then open a pull request and merge it into `main` so GitHub Pages deploys (only `main` may deploy to `github-pages`).
+
 - They do devops: bash, python, powershell, Linux, Docker, Git, Ansible. They are not a game developer.
 - Give clear, direct answers. Start with yes or no when it fits. No praise, no filler. If an explanation is needed, give it first, then the answer.
 - Keep it conversational. No long lists of things to test.
