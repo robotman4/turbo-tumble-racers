@@ -23,7 +23,20 @@ function screenSize() {
   return [Math.round(r.width) || window.innerWidth, Math.round(r.height) || window.innerHeight];
 }
 
+// iOS home-screen apps with the black-translucent status bar can lay out a full-screen fixed
+// box one status bar too short in portrait, leaving a strip of page background at the bottom.
+// The app really covers the whole screen there, so stretch both canvases to the screen height.
+function fixStandaloneGap() {
+  for (const c of [canvas, glCanvas]) c.style.height = '';
+  if (!navigator.standalone) return;
+  const portrait = window.matchMedia('(orientation: portrait)').matches;
+  const full = portrait ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
+  const h = canvas.getBoundingClientRect().height;
+  if (h < full - 2 && h > full - 120) for (const c of [canvas, glCanvas]) c.style.height = full + 'px';
+}
+
 function resize() {
+  fixStandaloneGap();
   const [w, h] = screenSize();
   lastW = w; lastH = h;
   V.dpr = Math.min(window.devicePixelRatio || 1, 2);
