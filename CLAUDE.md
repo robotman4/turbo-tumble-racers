@@ -18,6 +18,7 @@ A 3D physics launch game: pull back, let go, the toy vehicle tumbles through a c
 - In low gravity, friction is weak and vehicles slide off small islands. The sim adds rolling drag that grows as gravity drops, and moon islands are big.
 - Headless Chromium uses software GL and runs at about 3 fps. Game time is capped at 0.05 s per frame, so fades and intros take several real seconds. Wait for state (`fadeDir === 0`, `scene.ready`) instead of fixed sleeps, and skip the intro with `scene.rig.skipIntro()`.
 - `three` r186 removed `PCFSoftShadowMap`; use `PCFShadowMap`.
+- Portrait in an iOS home-screen app (black-translucent status bar) left a blue strip at the bottom: the full-screen fixed box came out about one status bar too short. Landscape was fine. `fixStandaloneGap()` in `main.js` stretches both canvases to the screen height when that happens. It couldn't be reproduced headless (it was simulated), so confirm it on a device.
 
 
 This repo is the starting point for small PWA games for kids aged 4–8. Each game lives in its own repo created from this template. Read this whole file before changing anything. It holds lessons learned the hard way on the first game (Rocket Hunt, `robotman4/rocketgame`).
