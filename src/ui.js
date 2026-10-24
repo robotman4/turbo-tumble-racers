@@ -1,5 +1,5 @@
 // Round icon buttons. No text, only symbols.
-import { INK, circle, fs, rr, starPath } from './draw.js';
+import { INK, circle, ellipse, fs, rr, starPath, label } from './draw.js';
 import { V, dist, shade } from './core.js';
 import { isMuted, sfx } from './audio.js';
 import { pwa } from './pwa.js';
@@ -30,7 +30,13 @@ export class Button {
     circle(ctx, 0, 0, this.r); fs(ctx, col, 5);
     ctx.beginPath(); ctx.arc(0, 0, this.r * 0.75, Math.PI * 1.1, Math.PI * 1.45); ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.stroke();
     drawIcon(ctx, this.icon, this.r, t);
+    // Settings toggles show a small red cross when off.
+    if (this.off) {
+      ctx.beginPath(); ctx.moveTo(-this.r * 0.6, this.r * 0.6); ctx.lineTo(this.r * 0.6, -this.r * 0.6);
+      ctx.lineWidth = this.r * 0.22; ctx.strokeStyle = INK; ctx.stroke(); ctx.lineWidth = this.r * 0.11; ctx.strokeStyle = '#ff5e5e'; ctx.stroke();
+    }
     ctx.restore();
+    if (this.caption) label(ctx, this.caption, this.x, this.y + this.r + 22 * V.ui, 20 * V.ui, '#ffffff');
   }
 }
 
@@ -46,10 +52,10 @@ export function drawIcon(ctx, icon, r, t = 0) {
     ctx.beginPath(); ctx.moveTo(-22, 0); ctx.lineTo(0, -20); ctx.lineTo(22, 0); ctx.lineTo(16, 0); ctx.lineTo(16, 20); ctx.lineTo(-16, 20); ctx.lineTo(-16, 0); ctx.closePath();
     ctx.fill(); ctx.stroke();
     rr(ctx, -5, 6, 10, 14, 2); ctx.fillStyle = INK; ctx.fill();
-  } else if (icon === 'sound') {
+  } else if (icon === 'sound' || icon === 'sfx') {
     ctx.beginPath(); ctx.moveTo(-20, -8); ctx.lineTo(-10, -8); ctx.lineTo(2, -18); ctx.lineTo(2, 18); ctx.lineTo(-10, 8); ctx.lineTo(-20, 8); ctx.closePath();
     ctx.fill(); ctx.stroke();
-    if (isMuted()) {
+    if (icon === 'sound' && isMuted()) {
       ctx.beginPath(); ctx.moveTo(8, -10); ctx.lineTo(22, 10); ctx.moveTo(22, -10); ctx.lineTo(8, 10); ctx.lineWidth = 6; ctx.strokeStyle = '#ffffff'; ctx.stroke();
     } else {
       ctx.beginPath(); ctx.arc(4, 0, 10, -0.8, 0.8); ctx.moveTo(4 + Math.cos(-0.8) * 18, Math.sin(-0.8) * 18); ctx.arc(4, 0, 18, -0.8, 0.8);
@@ -83,6 +89,78 @@ export function drawIcon(ctx, icon, r, t = 0) {
     ctx.lineWidth = 7; ctx.strokeStyle = '#ffffff'; ctx.stroke();
   } else if (icon === 'star') {
     starPath(ctx, 0, 0, 24, 11); ctx.fillStyle = '#ffe14d'; ctx.fill(); ctx.stroke();
+  } else if (icon === 'pause') {
+    rr(ctx, -16, -18, 11, 36, 4); ctx.fill(); ctx.stroke();
+    rr(ctx, 5, -18, 11, 36, 4); ctx.fill(); ctx.stroke();
+  } else if (icon === 'eye') {
+    ctx.beginPath(); ctx.moveTo(-24, 0); ctx.quadraticCurveTo(0, -24, 24, 0); ctx.quadraticCurveTo(0, 24, -24, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+    circle(ctx, 0, 0, 9); ctx.fillStyle = '#3b8fe8'; ctx.fill(); ctx.stroke();
+    circle(ctx, 0, 0, 4); ctx.fillStyle = INK; ctx.fill();
+  } else if (icon === 'gear') {
+    ctx.beginPath();
+    for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2, r = i % 2 ? 16 : 23; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); }
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    circle(ctx, 0, 0, 7); ctx.fillStyle = '#9b5de5'; ctx.fill(); ctx.stroke();
+  } else if (icon === 'car') {
+    rr(ctx, -24, -6, 48, 16, 6); ctx.fill(); ctx.stroke();
+    rr(ctx, -12, -18, 22, 14, 6); ctx.fill(); ctx.stroke();
+    for (const x of [-13, 13]) { circle(ctx, x, 12, 7); ctx.fillStyle = INK; ctx.fill(); circle(ctx, x, 12, 3); ctx.fillStyle = '#ffcc1a'; ctx.fill(); }
+  } else if (icon === 'trophy') {
+    ctx.beginPath(); ctx.moveTo(-16, -20); ctx.lineTo(16, -20); ctx.lineTo(14, -2); ctx.quadraticCurveTo(0, 12, -14, -2); ctx.closePath(); ctx.fillStyle = '#ffe14d'; ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(-17, -10, 7, Math.PI * 0.5, Math.PI * 1.5); ctx.moveTo(17, -17); ctx.arc(17, -10, 7, -Math.PI * 0.5, Math.PI * 0.5); ctx.lineWidth = 4; ctx.stroke();
+    rr(ctx, -4, 4, 8, 10, 2); ctx.fillStyle = '#ffe14d'; ctx.fill(); ctx.stroke();
+    rr(ctx, -13, 13, 26, 8, 3); ctx.fill(); ctx.stroke();
+  } else if (icon === 'map') {
+    ctx.beginPath(); ctx.moveTo(-22, -16); ctx.lineTo(-8, -20); ctx.lineTo(8, -16); ctx.lineTo(22, -20); ctx.lineTo(22, 16); ctx.lineTo(8, 20); ctx.lineTo(-8, 16); ctx.lineTo(-22, 20); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-8, -20); ctx.lineTo(-8, 16); ctx.moveTo(8, -16); ctx.lineTo(8, 20); ctx.lineWidth = 3; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-15, 8); ctx.lineTo(0, -2); ctx.lineTo(14, -8); ctx.setLineDash([3, 4]); ctx.strokeStyle = '#e8443a'; ctx.stroke(); ctx.setLineDash([]);
+  } else if (icon === 'music') {
+    ctx.beginPath(); ctx.moveTo(-6, 12); ctx.lineTo(-6, -18); ctx.lineTo(18, -22); ctx.lineTo(18, 8); ctx.lineWidth = 6; ctx.strokeStyle = INK; ctx.stroke();
+    ctx.lineWidth = 3; ctx.strokeStyle = '#ffffff'; ctx.stroke();
+    ctx.lineWidth = 4; ctx.strokeStyle = INK;
+    ellipse(ctx, -12, 13, 8, 6, -0.4); ctx.fill(); ctx.stroke();
+    ellipse(ctx, 12, 9, 8, 6, -0.4); ctx.fill(); ctx.stroke();
+  } else if (icon === 'turtle') {
+    ellipse(ctx, 0, 2, 20, 13); ctx.fillStyle = '#5cc95a'; ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-10, 2); ctx.lineTo(0, -6); ctx.lineTo(10, 2); ctx.lineTo(0, 10); ctx.closePath(); ctx.lineWidth = 3; ctx.stroke();
+    circle(ctx, 22, -2, 6); ctx.fillStyle = '#9be27a'; ctx.fill(); ctx.lineWidth = 4; ctx.stroke();
+    for (const x of [-12, 10]) { rr(ctx, x - 3, 12, 6, 7, 2); ctx.fillStyle = '#9be27a'; ctx.fill(); ctx.stroke(); }
+  } else if (icon === 'infinity') {
+    ctx.beginPath();
+    for (let i = 0; i <= 40; i++) { const a = (i / 40) * Math.PI * 2, d = 1 + Math.sin(a) ** 2; ctx.lineTo((20 * Math.cos(a)) / d, (20 * Math.sin(a) * Math.cos(a)) / d); }
+    ctx.lineWidth = 12; ctx.strokeStyle = INK; ctx.stroke(); ctx.lineWidth = 6; ctx.strokeStyle = '#ffffff'; ctx.stroke();
+  } else if (icon === 'sparkle') {
+    starPath(ctx, -4, 2, 20, 6, 4, 0); ctx.fill(); ctx.stroke();
+    starPath(ctx, 14, -14, 9, 3, 4, 0); ctx.fillStyle = '#ffe14d'; ctx.fill(); ctx.lineWidth = 3; ctx.stroke();
+  } else if (icon === 'trash') {
+    rr(ctx, -14, -12, 28, 32, 4); ctx.fill(); ctx.stroke();
+    rr(ctx, -19, -19, 38, 8, 3); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); for (const x of [-6, 0, 6]) { ctx.moveTo(x, -6); ctx.lineTo(x, 14); } ctx.lineWidth = 3; ctx.stroke();
+  } else if (icon === 'check') {
+    ctx.beginPath(); ctx.moveTo(-18, 0); ctx.lineTo(-5, 14); ctx.lineTo(20, -14);
+    ctx.lineWidth = 16; ctx.strokeStyle = INK; ctx.stroke(); ctx.lineWidth = 8; ctx.strokeStyle = '#ffffff'; ctx.stroke();
+  } else if (icon === 'ball') {
+    circle(ctx, 0, 0, 22); ctx.fill(); ctx.stroke();
+    ctx.save(); circle(ctx, 0, 0, 22); ctx.clip();
+    ctx.fillStyle = '#e8443a'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, 24, -1.6, -0.6); ctx.fill();
+    ctx.fillStyle = '#3b8fe8'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, 24, 0.5, 1.5); ctx.fill();
+    ctx.fillStyle = '#ffe14d'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, 24, 2.6, 3.6); ctx.fill();
+    ctx.restore(); circle(ctx, 0, 0, 22); ctx.stroke();
+  } else if (icon === 'back' || icon === 'left' || icon === 'right') {
+    ctx.save(); if (icon === 'right') ctx.scale(-1, 1);
+    ctx.beginPath(); ctx.moveTo(-20, 0); ctx.lineTo(2, -20); ctx.lineTo(2, -8); ctx.lineTo(20, -8); ctx.lineTo(20, 8); ctx.lineTo(2, 8); ctx.lineTo(2, 20); ctx.closePath();
+    ctx.fill(); ctx.stroke(); ctx.restore();
+  } else if (icon === 'bug') {
+    ellipse(ctx, 0, 4, 13, 17); ctx.fill(); ctx.stroke();
+    circle(ctx, 0, -15, 8); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); for (const y of [-2, 6, 14]) { ctx.moveTo(-13, y); ctx.lineTo(-22, y - 4); ctx.moveTo(13, y); ctx.lineTo(22, y - 4); } ctx.stroke();
+  } else if (icon === 'flag') {
+    ctx.beginPath(); ctx.moveTo(-14, 22); ctx.lineTo(-14, -22); ctx.lineWidth = 6; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-12, -20); ctx.lineTo(20, -12); ctx.lineTo(-12, -2); ctx.closePath(); ctx.fillStyle = '#e8443a'; ctx.lineWidth = 4; ctx.fill(); ctx.stroke();
+  } else if (icon === 'reset') {
+    ctx.beginPath(); ctx.arc(0, 0, 16, 0.3, Math.PI * 1.75); ctx.lineWidth = 12; ctx.strokeStyle = INK; ctx.stroke();
+    ctx.lineWidth = 6; ctx.strokeStyle = '#ffffff'; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(18, -16); ctx.lineTo(18, 2); ctx.lineTo(2, -6); ctx.closePath(); ctx.fillStyle = '#fff'; ctx.lineWidth = 4; ctx.strokeStyle = INK; ctx.fill(); ctx.stroke();
   }
   ctx.restore();
 }

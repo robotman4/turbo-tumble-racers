@@ -6,15 +6,15 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="My Game" />
-    <meta name="theme-color" content="#1a1446" />
+    <meta name="apple-mobile-web-app-title" content="Turbo Tumble" />
+    <meta name="theme-color" content="#2a7fd4" />
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
     <link rel="icon" href="icons/icon-192.png" type="image/png" />
-    <title>My Game</title>
+    <title>Turbo Tumble Racers</title>
     <style>
       html, body {
         margin: 0; padding: 0; height: 100%; overflow: hidden;
-        background: #1a1446;
+        background: #2a7fd4;
         position: fixed; inset: 0;
         touch-action: none;
         -webkit-user-select: none; user-select: none;
@@ -24,32 +24,22 @@
       }
       /* The canvas always covers the whole screen; its pixel size is measured from this box. */
       canvas { display: block; touch-action: none; position: fixed; inset: 0; width: 100%; height: 100%; }
+      #gl { z-index: 0; }
+      #game { z-index: 1; }
+      #boot { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 2; pointer-events: none; }
+      #boot div { width: 64px; height: 64px; border-radius: 50%; border: 10px solid #fff; border-top-color: #ffcc1a; animation: spin 0.8s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
       #safe {
         position: fixed; visibility: hidden; pointer-events: none;
         padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
       }
-      #rotate {
-        display: none; position: fixed; inset: 0; z-index: 10;
-        background: #1a1446; align-items: center; justify-content: center;
-      }
-      #rotate svg { width: 40vmin; height: 40vmin; animation: turn 2s ease-in-out infinite; }
-      @keyframes turn { 0%, 30% { transform: rotate(0deg); } 60%, 100% { transform: rotate(-90deg); } }
-      @media (orientation: portrait) { #rotate { display: flex; } }
     </style>
   </head>
   <body>
+    <canvas id="gl"></canvas>
     <canvas id="game"></canvas>
+    <div id="boot"><div></div></div>
     <div id="safe"></div>
-    <!-- Shown when held upright: the game is landscape only. -->
-    <div id="rotate">
-      <svg viewBox="0 0 100 100" aria-label="Turn the device sideways">
-        <rect x="30" y="10" width="40" height="80" rx="8" fill="#fff" stroke="#2a1f3d" stroke-width="4" />
-        <rect x="35" y="18" width="30" height="62" rx="3" fill="#5fbfff" />
-        <circle cx="50" cy="85" r="3" fill="#2a1f3d" />
-        <path d="M78 30 A 34 34 0 0 1 84 62" fill="none" stroke="#ffe14d" stroke-width="6" stroke-linecap="round" />
-        <path d="M76 58 L86 66 L90 54 Z" fill="#ffe14d" />
-      </svg>
-    </div>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

@@ -1,11 +1,17 @@
-// Boot: canvas, resize, input, main loop and scene switching.
+// Boot: canvases, resize, input, main loop and scene switching.
+// Two stacked canvases: WebGL (#gl) for the 3D world and a 2D canvas (#game) on top for UI.
+// A scene that shows 3D exposes `stage` ({ scene, camera }) and the loop renders it first.
 import { V } from './core.js';
 import { unlockAudio } from './audio.js';
+import { Renderer3D } from './render/renderer.js';
+import { save } from './storage.js';
 import { TitleScene } from './scenes/title.js';
+import { initDebug } from './debug.js';
 import './pwa.js';
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
+const glCanvas = document.getElementById('gl');
 const safeEl = document.getElementById('safe');
 
 // Measure the canvas as CSS actually laid it out (full screen). iOS sometimes reports a stale
@@ -23,21 +29,24 @@ function resize() {
   V.dpr = Math.min(window.devicePixelRatio || 1, 2);
   canvas.width = Math.round(w * V.dpr);
   canvas.height = Math.round(h * V.dpr);
-  V.h = 768;
-  V.w = Math.max(768, (768 * w) / h);
+  // The short side is always 768 logical units: landscape is 768 high, portrait 768 wide.
+  if (w >= h) { V.h = 768; V.w = (768 * w) / h; } else { V.w = 768; V.h = (768 * h) / w; }
+  V.portrait = w < h;
   V.scale = canvas.height / V.h;
-  V.ui = h < 500 ? 1.35 : 1;
+  V.ui = Math.min(w, h) < 500 ? 1.35 : 1;
   const cs = getComputedStyle(safeEl);
   const k = V.h / h;
   V.safeL = parseFloat(cs.paddingLeft) * k || 0;
   V.safeR = parseFloat(cs.paddingRight) * k || 0;
   V.safeT = parseFloat(cs.paddingTop) * k || 0;
   V.safeB = parseFloat(cs.paddingBottom) * k || 0;
+  if (game.r3d) game.r3d.resize();
   if (game.scene && game.scene.onResize) game.scene.onResize();
 }
 
 export const game = {
   scene: null,
+  r3d: null,
   next: null,
   fade: 0,
   fadeDir: 0,
@@ -111,9 +120,14 @@ function frame(now) {
     game.fade -= dt / 0.35;
     if (game.fade <= 0) { game.fade = 0; game.fadeDir = 0; }
   }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.setTransform(V.scale, 0, 0, V.scale, 0, 0);
   if (game.scene) {
     game.scene.update(dt);
+    const stage = game.scene.stage;
+    glCanvas.style.visibility = stage ? 'visible' : 'hidden';
+    if (stage) { game.r3d.adapt(dt); game.r3d.render(stage); }
     game.scene.draw(ctx);
   }
   if (game.fade > 0) {
@@ -123,8 +137,16 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 
+game.r3d = new Renderer3D(glCanvas);
+game.r3d.setQuality(save.settings.quality);
 resize();
 window.__game = game; // handy for debugging in the browser console
+// Test hook: jump straight into a level from Playwright or the console.
+window.__startLevel = (id, mode) => import('./scenes/nav.js').then((m) => m.startLevel(game, id, mode || (id === 'playground' ? 'playground' : 'adventure')));
+initDebug(game);
 game.scene = new TitleScene(game);
 if (game.scene.enter) game.scene.enter();
 requestAnimationFrame(frame);
+// The menus are ready: remove the loading spinner from index.html.
+const bootEl = document.getElementById('boot');
+if (bootEl) bootEl.remove();
