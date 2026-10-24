@@ -29,17 +29,28 @@ function screenSize() {
 // is still painted below it. So in that case the page and both canvases switch from fixed to
 // absolute layout at the full screen height. `window.__gapFix` shows in the info panel.
 const pageEls = [document.documentElement, document.body];
+// The fix changes the layout, which fires another resize. So once it is on, it stays on until
+// the orientation changes; undoing it on every resize made it flicker on and off.
+let gapFor = null;
+function setGapLayout(full) {
+  for (const el of [...pageEls, canvas, glCanvas]) {
+    if (full) Object.assign(el.style, { position: 'absolute', top: '0', bottom: 'auto', height: full + 'px' });
+    else for (const k of ['position', 'top', 'bottom', 'height']) el.style[k] = '';
+  }
+  window.__gapFix = !!full;
+}
 function fixStandaloneGap() {
-  for (const el of [...pageEls, canvas, glCanvas]) for (const k of ['position', 'top', 'bottom', 'height']) el.style[k] = '';
-  window.__gapFix = false;
+  const portrait = window.matchMedia('(orientation: portrait)').matches;
+  const key = portrait ? 'portrait' : 'landscape';
+  if (gapFor && gapFor !== key) { setGapLayout(0); gapFor = null; }
+  if (gapFor) return;
   const app = navigator.standalone || ['standalone', 'fullscreen'].some((m) => window.matchMedia(`(display-mode: ${m})`).matches);
   if (!app) return;
-  const portrait = window.matchMedia('(orientation: portrait)').matches;
   const full = portrait ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
   const short = full - window.innerHeight;
   if (short < 2 || short > 120) return;
-  for (const el of [...pageEls, canvas, glCanvas]) Object.assign(el.style, { position: 'absolute', top: '0', bottom: 'auto', height: full + 'px' });
-  window.__gapFix = true;
+  setGapLayout(full);
+  gapFor = key;
 }
 
 function resize() {
