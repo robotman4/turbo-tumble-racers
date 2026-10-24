@@ -28,7 +28,8 @@ function screenSize() {
 // The app really covers the whole screen there, so stretch both canvases to the screen height.
 function fixStandaloneGap() {
   for (const c of [canvas, glCanvas]) c.style.height = '';
-  if (!navigator.standalone) return;
+  const app = navigator.standalone || ['standalone', 'fullscreen'].some((m) => window.matchMedia(`(display-mode: ${m})`).matches);
+  if (!app) return;
   const portrait = window.matchMedia('(orientation: portrait)').matches;
   const full = portrait ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
   const h = canvas.getBoundingClientRect().height;
