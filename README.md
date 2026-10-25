@@ -8,7 +8,9 @@ built from the kids-game template.
 - **Adventure:** 32 levels in 4 worlds (Backyard Mayhem, Candy Chaos, Pirate Panic, Moon Madness), unlocked in order, with 1–3 stars and best scores.
 - **Playground:** an open toy arena with unlimited launches and an instant reset.
 - **Challenge:** replay unlocked levels for best score, fewest launches and fastest time.
-- **Vehicles:** Panda Kart (balanced), Dino Board (light and floaty) and Chicken Cart (heavy hitter), plus paint jobs bought with coins collected in the game. There's no real money anywhere.
+- **Vehicles:** Panda Kart (balanced), Dino Board (light and floaty) and Chicken Cart (heavy hitter), plus paint jobs and upgrades (Turbo, Springs, Wings, Bumper; three levels each) bought with coins collected in the game. There's no real money anywhere.
+- **Car builder:** mix a body (kart, board or cart; it decides how the car drives), a driver (panda, dino, chicken) and a paint colour. Cars can be shared as a link or code.
+- **Level builder ("Build"):** tap squares on a 12×8 grid to add floors (four heights), ramps, jelly, ice, start, finish, trampolines, boost pads, springboards, cannons, block towers, crates, balls, coins and stars, in any of the four worlds. Test-drive with the green button. A level can be shared once its maker has finished it. Home-made levels give no coins, so they can't be used to farm coins.
 - **Settings:** music, sounds, Easy Mode (wider finish, aiming help, bigger pickups, optional unlimited launches), graphics quality, reset progress.
 
 ## Develop
@@ -20,6 +22,7 @@ npm run build    # production build into dist/
 npm run preview  # serve the built version
 npm test         # unit tests + "every level can be finished by every vehicle"
 npm run solve    # re-run the level solver after changing levels (writes solutions.json)
+node scripts/stars.mjs   # re-record a path to every star for every vehicle (starpaths.json)
 ```
 
 Developer mode: add `?debug` to the URL, or tap the bug button in Settings. A panel shows FPS,
@@ -100,7 +103,7 @@ in degrees (0 faces +x, positive turns toward -z).
 Surfaces (`mat`): grass, wood, plank, plastic, cardboard, rubber, jelly (bouncy), candy, icing (slippery),
 sticky (caramel, slows you down), deck, sand, metal, moon, crystal (bouncy).
 
-After changing a level, run `npm run solve <id>`, then `npm test`. The tests fail when any level can't
+After changing a level, run `npm run solve <id>`, then `node scripts/stars.mjs <id>`, then `npm test`. The solver also proves each level with fully upgraded cars (ids like `panda+max`), and the star paths prove that every star can be collected by every vehicle. `node scripts/placestars.mjs` suggests a reachable spot for a star that isn't. The tests fail when any level can't
 be finished by every vehicle. `node scripts/probe.mjs <id> [vehicle] [yaw]` prints where a grid of
 launches ends up, which helps when tuning gaps and jumps.
 
@@ -109,6 +112,10 @@ launches ends up, which helps when tuning gaps and jumps.
 Finish 1000, coin 50, star 250, each prop knocked over or smashed 25 (once per prop), chain reaction
 +40, combo +15 per step, big air 80/s, flip 150, upright landing 100, unused launch 300, secret 500.
 Stars: finishing is always at least 1 star; 2 and 3 stars need the level's thresholds.
+
+## Sharing
+
+There's no server. A shared car or level is a code (`TTC1…` for cars, `TTL1…` for levels) that holds the whole thing. Sharing opens the share sheet with a link (game URL + `#code`), or copies the link. Opening the link adds the car or level to that device. Because iOS opens links in Safari rather than in the installed app, there's also a paste-a-code button (the ABC button in the garage and in My levels).
 
 ## Extending
 
