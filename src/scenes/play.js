@@ -93,7 +93,7 @@ export class PlayScene {
   }
 
   enter() {}
-  exit() { if (this.view) this.view.dispose(); if (this.sim) this.sim.free(); if (debugState.scene === this) debugState.scene = null; }
+  exit() { this.settleResult(); if (this.view) this.view.dispose(); if (this.sim) this.sim.free(); if (debugState.scene === this) debugState.scene = null; }
 
   // ---------- helpers ----------
   toScreen(p) {
@@ -186,6 +186,8 @@ export class PlayScene {
 
   // Fast retry: rebuild the level in place without leaving the scene.
   restart(keepCamera = false) {
+    this.settleResult();
+    this.pendingResult = null; this.resultDelay = undefined;
     const cam = this.rig?.camera;
     this.view.dispose(); this.sim.free();
     this.result = null; this.resultT = 0; this.popups = []; this.time = 0; this.timing = false;
@@ -239,17 +241,29 @@ export class PlayScene {
     if (this.mode === 'playground') return;
     sfx('fanfare'); sfx(this.vehicleDef.voice);
     this.timing = false;
+    // Points still count during the short celebration after the finish (blocks falling, a last
+    // flip); the score is settled when the result panel opens, see settleResult().
+    this.pendingResult = { kind: 'win', launches: this.sim.st.used, time: this.time };
+    this.resultDelay = 1.8;
+  }
+
+  // Freeze the score and record the result. Runs once: when the result panel opens, or
+  // earlier if the player leaves or restarts during the celebration.
+  settleResult() {
+    const res = this.pendingResult;
+    if (!res || res.score !== undefined) return res;
     const sim = this.sim;
-    const stars = starsFor(sim.score.total, this.th, true);
-    const res = { kind: 'win', score: sim.score.total, stars, launches: sim.st.used, time: this.time, coins: sim.st.coins.length };
+    sim.score.frozen = true;
+    res.score = sim.score.total;
+    res.stars = starsFor(res.score, this.th, true);
+    res.coins = sim.st.coins.length;
     if (this.mode === 'custom') {
       // Home-made levels: finishing one proves it can be done, which unlocks sharing.
       // No coins or records, so building coin-stuffed levels can't be used to farm coins.
       if (this.opts.custom) { this.opts.custom.verified = true; persist(); }
       this.better = {};
     } else this.better = recordLevel(this.level.id, levelIndex(this.level.id), res);
-    this.pendingResult = res;
-    this.resultDelay = 1.8;
+    return res;
   }
 
   // ---------- frame ----------
@@ -277,7 +291,7 @@ export class PlayScene {
         this.resultDelay -= dt;
         if (this.resultDelay <= 0) {
           this.resultDelay = undefined;
-          if (this.pendingResult) { this.result = this.pendingResult; this.pendingResult = null; this.resultT = 0; this.starSfx = 0; }
+          if (this.pendingResult) { this.result = this.settleResult(); this.pendingResult = null; this.resultT = 0; this.starSfx = 0; }
           else if (sim.state === 'out') { this.result = { kind: 'out' }; this.resultT = 0; sfx('bounce'); }
         }
       }

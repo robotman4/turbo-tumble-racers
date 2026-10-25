@@ -30,6 +30,24 @@ vehicle coordinates, camera mode and scoring events, and has buttons to load any
 collision shapes, reset the vehicle, run the solver and auto-play its solution, and simulate a lost
 graphics context.
 
+## Native apps (App Store and Google Play)
+
+The same game is wrapped as iOS and Android apps with [Capacitor](https://capacitorjs.com). `NATIVE=1` builds the game without the service worker and update button (the stores deliver updates), shared links point at the web version, and the save is mirrored to native storage so iOS can't silently clear it. The `ios/` and `android/` folders are the native projects; you rarely need to edit them.
+
+On the Mac (needs Xcode from the App Store, and Android Studio for Android):
+
+```bash
+npm ci
+npm run ios       # builds the game, copies it into ios/ and opens Xcode
+npm run android   # same for Android Studio
+```
+
+Full iOS steps, including for a Claude Code session on the Mac: [docs/IOS.md](docs/IOS.md) (`scripts/ios.sh`). In Xcode, choose your team under Signing & Capabilities the first time, pick the iPad or iPhone (cable or same Wi-Fi) and press Run. For the App Store: raise the version, then Product → Archive → Distribute App → App Store Connect. After any change to the game, run `npm run ios` again before building.
+
+The bundle id is `io.github.robotman4.turbotumble` (in `capacitor.config.json`, Xcode and `android/app/build.gradle`). Change it before the first store upload if you want a different one; it can't change afterwards.
+
+CI: the "Native apps" workflow (run it by hand, or push a tag like `v1.0.0`) runs the tests, builds an Android debug APK and release bundle, and compiles the iOS app for the simulator. For a signed Google Play bundle, add the secrets `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` and `ANDROID_KEY_PASSWORD`. iOS store builds are archived from Xcode on the Mac. `python3 scripts/make_icons.py` also writes the app icons and splash screens for both.
+
 ## Architecture
 
 Vanilla JS with Vite, as in the template. Three.js draws the 3D world on one canvas, and the template's

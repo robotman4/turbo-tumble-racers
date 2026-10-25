@@ -1,0 +1,13 @@
+{
+  "appId": "io.github.robotman4.turbotumble",
+  "appName": "Turbo Tumble",
+  "webDir": "dist",
+  "backgroundColor": "#2a7fd4",
+  "ios": {
+    "contentInset": "never",
+    "scrollEnabled": false
+  },
+  "android": {
+    "backgroundColor": "#2a7fd4"
+  }
+}

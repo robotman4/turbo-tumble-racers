@@ -67,3 +67,12 @@ test('default thresholds grow with what a level offers and stay ordered', () => 
   assert.ok(small[0] > POINTS.finish, 'two stars needs more than just finishing');
   assert.deepEqual(thresholds({ thresholds: [1, 2] }), [1, 2]);
 });
+
+test('once the result is shown the score is frozen', () => {
+  const s = new ScoreKeeper();
+  s.add('coin', POINTS.coin, 'c1');
+  s.frozen = true;
+  assert.equal(s.add('coin', POINTS.coin, 'c2'), null);
+  assert.equal(s.destroy('p1', 1), null);
+  assert.equal(s.total, POINTS.coin);
+});

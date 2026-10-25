@@ -4,7 +4,7 @@
 import { V } from './core.js';
 import { unlockAudio } from './audio.js';
 import { Renderer3D } from './render/renderer.js';
-import { save } from './storage.js';
+import { save, restoreNativeSave } from './storage.js';
 import { TitleScene } from './scenes/title.js';
 import { initDebug } from './debug.js';
 import './pwa.js';
@@ -168,17 +168,20 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 
-game.r3d = new Renderer3D(glCanvas);
-game.r3d.setQuality(save.settings.quality);
-resize();
-window.__game = game; // handy for debugging in the browser console
-window.__V = V;
-// Test hook: jump straight into a level from Playwright or the console.
-window.__startLevel = (id, mode) => import('./scenes/nav.js').then((m) => m.startLevel(game, id, mode || (id === 'playground' ? 'playground' : 'adventure')));
-initDebug(game);
-game.scene = new TitleScene(game);
-if (game.scene.enter) game.scene.enter();
-requestAnimationFrame(frame);
-// The menus are ready: remove the loading spinner from index.html.
-const bootEl = document.getElementById('boot');
-if (bootEl) bootEl.remove();
+// The store apps first bring back a save that iOS may have cleared (no-op on the web).
+restoreNativeSave().finally(() => {
+  game.r3d = new Renderer3D(glCanvas);
+  game.r3d.setQuality(save.settings.quality);
+  resize();
+  window.__game = game; // handy for debugging in the browser console
+  window.__V = V;
+  // Test hook: jump straight into a level from Playwright or the console.
+  window.__startLevel = (id, mode) => import('./scenes/nav.js').then((m) => m.startLevel(game, id, mode || (id === 'playground' ? 'playground' : 'adventure')));
+  initDebug(game);
+  game.scene = new TitleScene(game);
+  if (game.scene.enter) game.scene.enter();
+  requestAnimationFrame(frame);
+  // The menus are ready: remove the loading spinner from index.html.
+  const bootEl = document.getElementById('boot');
+  if (bootEl) bootEl.remove();
+});

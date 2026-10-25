@@ -6,7 +6,7 @@ import { Button, tapUpdate } from './ui.js';
 import { sfx } from './audio.js';
 import { pwa } from './pwa.js';
 
-/* global __APP_VERSION__ */
+/* global __APP_VERSION__, __NATIVE__ */
 const VERSION = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev';
 
 // Change the first section per game. Keep the other two unless the game really does something different.
@@ -46,7 +46,7 @@ export class InfoPanel {
     const b = this.box, c = this.checkBtn;
     if (this.close.hit(p)) { this.hide(); return true; }
     if (this.updBtn && this.status === 'available' && this.updBtn.hit(p)) { tapUpdate(this.updBtn, fx); return true; }
-    if (p.x > c.x && p.x < c.x + c.w && p.y > c.y && p.y < c.y + c.h && this.status !== 'checking') {
+    if (!__NATIVE__ && p.x > c.x && p.x < c.x + c.w && p.y > c.y && p.y < c.y + c.h && this.status !== 'checking') {
       sfx('tap');
       this.status = 'checking';
       pwa.check().then((r) => { this.status = r; if (r === 'available') sfx('ready'); });
@@ -85,8 +85,9 @@ export class InfoPanel {
     const app = navigator.standalone || window.matchMedia('(display-mode: standalone)').matches || window.matchMedia('(display-mode: fullscreen)').matches;
     ctx.font = `${13 * f}px Arial, sans-serif`;
     ctx.fillText(`Screen ${screen.width}×${screen.height} · view ${Math.round(box.width)}×${Math.round(box.height)} · window ${innerWidth}×${innerHeight} · ${app ? 'app' : 'browser'}${window.__gapFix ? ' · fix' : ''}`, x + 40, y + h - 150 * (V.ui > 1 ? 1.05 : 1));
-    // Check for updates
+    // Check for updates (web version only; the store apps update through the store)
     const c = this.checkBtn;
+    if (__NATIVE__) { this.close.draw(ctx, t); ctx.restore(); return; }
     rr(ctx, c.x, c.y, c.w, c.h, 31); fs(ctx, this.status === 'checking' ? '#9a96a6' : '#3b8fe8', 5);
     ctx.fillStyle = '#ffffff'; ctx.font = `800 ${22 * Math.min(f, 1.3)}px "Arial Rounded MT Bold", Arial, sans-serif`; ctx.textBaseline = 'middle';
     ctx.textAlign = 'center';

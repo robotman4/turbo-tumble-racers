@@ -27,6 +27,7 @@ export class ScoreKeeper {
 
   // Adds points once per id. Returns the event, or null if that id was already scored.
   add(type, pts, id = null, t = 0, extra = {}) {
+    if (this.frozen) return null; // the result has been shown: nothing more counts
     if (id !== null) {
       const key = type + ':' + id;
       if (this.seen.has(key)) return null;

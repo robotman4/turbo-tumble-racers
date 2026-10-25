@@ -69,8 +69,30 @@ function load() {
 
 export const save = load();
 
+// iOS may clear a web view's localStorage when the device runs low on space, so the store apps
+// (NATIVE build) also keep the save in native storage (Capacitor Preferences) and restore it.
+/* global __NATIVE__ */
+const NATIVE = typeof __NATIVE__ !== 'undefined' && __NATIVE__;
+let nativePrefs = null;
+export async function restoreNativeSave() {
+  if (!NATIVE) return;
+  try {
+    const { Preferences } = await import('@capacitor/preferences');
+    nativePrefs = Preferences;
+    if (localStorage.getItem(KEY)) return;
+    const { value } = await Preferences.get({ key: KEY });
+    if (!value) return;
+    const d = migrate(JSON.parse(value));
+    for (const k of Object.keys(save)) delete save[k];
+    Object.assign(save, d);
+    localStorage.setItem(KEY, value);
+  } catch (e) { /* play on with what localStorage has */ }
+}
+
 export function persist() {
-  try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) { /* ignore */ }
+  const json = JSON.stringify(save);
+  try { localStorage.setItem(KEY, json); } catch (e) { /* ignore */ }
+  if (nativePrefs) nativePrefs.set({ key: KEY, value: json }).catch(() => {});
 }
 
 export function resetProgress() {
