@@ -8,9 +8,23 @@ import { pwa } from '../pwa.js';
 import { InfoPanel } from '../info.js';
 import { Gift } from '../celebrate.js';
 import { MenuStage } from '../render/menuStage.js';
-import { save, totalStars } from '../storage.js';
-import { vehicleById } from '../game/vehicles.js';
-import { goWorlds, goGarage, goSettings, startLevel, preloadPlay } from './nav.js';
+import { save, persist, totalStars } from '../storage.js';
+import { playerVehicle } from '../game/garage.js';
+import { goWorlds, goGarage, goSettings, goWorkshop, startLevel, preloadPlay } from './nav.js';
+import { takeLinkCode, Toast } from '../share.js';
+import { decodeCar } from '../game/garage.js';
+import { decodeLevel, MAX_CUSTOM_LEVELS } from '../game/custom.js';
+
+// Someone opened a shared link: add the car or level it carries to this device.
+function importFromLink() {
+  const code = takeLinkCode();
+  if (!code) return null;
+  const car = decodeCar(code);
+  if (car) { car.id = Date.now().toString(36); save.customCars.push(car); save.vehicle = 'custom:' + car.id; persist(); return 'New car in the garage!'; }
+  const lvl = decodeLevel(code);
+  if (lvl && save.customLevels.length < MAX_CUSTOM_LEVELS) { save.customLevels.push(lvl); persist(); return 'New level in My levels!'; }
+  return null;
+}
 
 export const GAME_TITLE = ['TURBO TUMBLE', 'RACERS'];
 
@@ -18,15 +32,22 @@ export const GAME_TITLE = ['TURBO TUMBLE', 'RACERS'];
 let sharedStage = null;
 export function menuStage(game) {
   if (!sharedStage) sharedStage = new MenuStage(game.r3d.q);
-  const v = vehicleById(save.vehicle);
-  const paint = v.paints.find((p) => p.id === save.paint[v.id]) || v.paints[0];
-  if (!sharedStage.vehicle || sharedStage.vehicle.def.id !== v.id || sharedStage.paint !== paint.color) {
-    sharedStage.setVehicle(v, paint.color);
-    sharedStage.paint = paint.color;
+  const { base, paint } = playerVehicle(save);
+  const key = [base.id, paint, base.body, base.driver, base.skin].join('|');
+  if (sharedStage.key !== key) {
+    sharedStage.setVehicle(base, paint);
+    sharedStage.key = key;
   }
   return sharedStage;
 }
 export function resetMenuStage() { sharedStage = null; }
+// Show a car that isn't saved yet (car builder); the next menuStage() call restores the player's.
+export function previewOnStage(game, def, paint) {
+  const st = menuStage(game);
+  st.setVehicle(def, paint);
+  st.key = null;
+  return st;
+}
 
 export class TitleScene {
   constructor(game) {
@@ -38,7 +59,11 @@ export class TitleScene {
     this.btnChallenge = new Button('trophy', '#e8443a', 40); this.btnChallenge.caption = 'Challenge';
     this.btnGarage = new Button('car', '#3b8fe8', 40); this.btnGarage.caption = 'Vehicles';
     this.btnSettings = new Button('gear', '#9b5de5', 40); this.btnSettings.caption = 'Settings';
-    this.row = [this.btnPlayground, this.btnChallenge, this.btnGarage, this.btnSettings];
+    this.btnBuild = new Button('hammer', '#f7a83c', 40); this.btnBuild.caption = 'Build';
+    this.row = [this.btnPlayground, this.btnChallenge, this.btnGarage, this.btnBuild, this.btnSettings];
+    this.toast = new Toast();
+    const imported = importFromLink();
+    if (imported) setTimeout(() => { this.toast.show(imported, '#5cc95a'); }, 600);
     this.sound = new Button('sound', '#3b8fe8', 34);
     this.infoBtn = new Button('info', '#9b5de5', 34);
     this.info = new InfoPanel();
@@ -80,12 +105,13 @@ export class TitleScene {
     if (this.btnChallenge.hit(p)) { sfx('pop'); goWorlds(this.game, 'challenge'); return; }
     if (this.btnGarage.hit(p)) { sfx('pop'); goGarage(this.game); return; }
     if (this.btnSettings.hit(p)) { sfx('pop'); goSettings(this.game); return; }
+    if (this.btnBuild.hit(p)) { sfx('pop'); goWorkshop(this.game); return; }
     this.fx.burst(p.x, p.y, 8);
     sfx('tap');
   }
   update(dt) {
     this.t += dt;
-    this.fx.update(dt); this.info.update(dt);
+    this.fx.update(dt); this.info.update(dt); this.toast.update(dt);
     if (this.gift) this.gift.update(dt);
     this.stage.update(dt, this.game.r3d.w, this.game.r3d.h);
   }
@@ -126,6 +152,7 @@ export class TitleScene {
     this.sound.draw(ctx, t);
     this.infoBtn.draw(ctx, t);
     this.info.draw(ctx, t);
+    this.toast.draw(ctx, t);
     this.fx.draw(ctx);
     if (this.gift) this.gift.draw(ctx, t);
   }

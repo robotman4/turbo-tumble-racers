@@ -11,7 +11,13 @@ A 3D physics launch game: pull back, let go, the toy vehicle tumbles through a c
 - **Save** is versioned (`SAVE_VERSION`, `MIGRATIONS` in `storage.js`); settings live in `save.settings`.
 - **Developer mode:** `?debug` or the bug button in Settings (`src/debug.js`). Test hook: `window.__startLevel(id)`; a play scene takes `scene.autoplay = [{ yaw, power }]` to replay solver launches.
 
+- **Garage:** upgrades and custom cars live in `src/game/garage.js`. Custom cars take their physics from their body (kart = Panda Kart, board = Dino Board, cart = Chicken Cart), so they inherit the level proofs. Bodies and drivers are separate builders in `render/vehicleMesh.js`.
+- **Level builder:** grid model, tools, compile and share codes are in `src/game/custom.js` (unit tested); the screens are `scenes/builder.js` and `scenes/workshop.js`. A custom level must be finished once (`verified`) before it can be shared.
+
 ### Lessons from building it
+
+- 16 of 35 stars were first placed by eye above any reachable jump arc; the owner found one on Candy/16. Every star now has a recorded path per vehicle (`scripts/stars.mjs` → `starpaths.json`), replayed by the tests. `scripts/placestars.mjs` finds the nearest reachable spot. Never place a collectible without running these.
+- Full upgrades (bounce plus float) made the Panda bounce off the small moving raft on 3-2. The solver now also proves every level with fully upgraded cars (`panda+max` and so on).
 
 - In level data, `cyl.r` is the radius while `box.r` is a rotation. Feeding a radius into a rotation gave NaN quaternions: cylinders had no collision, and Rapier sometimes panicked with "unreachable". It looked like a Rapier bug until it was bisected. Only boxes take `r` as a rotation now.
 - Bouncy jumps (jelly, trampolines) tend to arrive low, so a deck whose top is above the launch height gets hit on its side. Keep landing decks low or close.

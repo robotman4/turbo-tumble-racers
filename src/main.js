@@ -172,6 +172,7 @@ game.r3d = new Renderer3D(glCanvas);
 game.r3d.setQuality(save.settings.quality);
 resize();
 window.__game = game; // handy for debugging in the browser console
+window.__V = V;
 // Test hook: jump straight into a level from Playwright or the console.
 window.__startLevel = (id, mode) => import('./scenes/nav.js').then((m) => m.startLevel(game, id, mode || (id === 'playground' ? 'playground' : 'adventure')));
 initDebug(game);

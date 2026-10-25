@@ -14,6 +14,9 @@ export function defaults() {
     coins: 0,            // coins collected over all runs (spent on paint jobs)
     paints: { panda: ['blue'], dino: ['green'], chicken: ['red'] },
     paint: { panda: 'blue', dino: 'green', chicken: 'red' },
+    upgrades: {},        // car id -> { turbo, springs, wings, bumper } levels 0-3
+    customCars: [],      // car builder: { id, body, driver, paint, skin, name }
+    customLevels: [],    // level builder: { id, world, cells, verified }
     settings: { muted: false, music: true, sfx: true, easy: false, unlimited: false, quality: 'auto', debug: false },
     seenTips: {},
   };
@@ -45,6 +48,9 @@ export function migrate(raw) {
   out.paints = { ...base.paints, ...(d.paints || {}) };
   out.paint = { ...base.paint, ...(d.paint || {}) };
   out.levels = d.levels && typeof d.levels === 'object' ? d.levels : {};
+  out.upgrades = d.upgrades && typeof d.upgrades === 'object' ? d.upgrades : {};
+  out.customCars = Array.isArray(d.customCars) ? d.customCars : [];
+  out.customLevels = Array.isArray(d.customLevels) ? d.customLevels : [];
   out.v = SAVE_VERSION;
   return out;
 }
@@ -68,10 +74,11 @@ export function persist() {
 }
 
 export function resetProgress() {
-  const keep = save.settings;
+  // Progress goes; settings and the player's own creations (cars, levels) stay.
+  const keep = save.settings, cars = save.customCars, lvls = save.customLevels;
   const d = defaults();
   for (const k of Object.keys(save)) delete save[k];
-  Object.assign(save, d, { settings: { ...keep, debug: keep.debug } });
+  Object.assign(save, d, { settings: { ...keep }, customCars: cars || [], customLevels: lvls || [] });
   persist();
 }
 

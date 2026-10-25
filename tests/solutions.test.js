@@ -10,6 +10,10 @@ import { LEVELS } from '../src/game/levels/index.js';
 import { VEHICLES } from '../src/game/vehicles.js';
 import { replay } from '../src/game/solver.js';
 import { DEG } from '../src/game/launch.js';
+import { applyUpgrades, MAX_UPGRADE } from '../src/game/garage.js';
+
+const MAX = { turbo: MAX_UPGRADE, springs: MAX_UPGRADE, wings: MAX_UPGRADE, bumper: MAX_UPGRADE };
+const UPGRADED = VEHICLES.map((v) => ({ ...applyUpgrades(v, MAX), id: v.id + '+max' }));
 
 await initPhysics();
 const SOL = JSON.parse(readFileSync(new URL('../src/game/levels/solutions.json', import.meta.url), 'utf8'));
@@ -25,8 +29,8 @@ function finishes(level, v, launches) {
 }
 
 for (const level of LEVELS) {
-  test(`level ${level.id} "${level.name}" can be finished by every vehicle`, () => {
-    for (const v of VEHICLES) {
+  test(`level ${level.id} "${level.name}" can be finished by every vehicle, also fully upgraded`, () => {
+    for (const v of [...VEHICLES, ...UPGRADED]) {
       const sol = SOL[level.id]?.[v.id];
       assert.ok(sol && sol.length, `${level.id} has a recorded solution for ${v.id} (run npm run solve)`);
       assert.ok(sol.length <= (level.launches || 3), 'within the launch limit');

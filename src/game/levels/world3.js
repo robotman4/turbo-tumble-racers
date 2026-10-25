@@ -27,7 +27,7 @@ export default [
     finish: { p: [60, 0, 0], r: 4 },
     cam: [30, 26, 28],
     parts: [slab(-4, 6, 0, { w: 9, mat: 'sand' }), slab(54, 68, 0, { w: 11, mat: 'sand' })],
-    movers: [{ t: 'slider', p: [20, -0.5, 0], s: [8, 1, 7], to: [20, 0, 0], period: 8, mat: 'deck', color: '#a8672f' }],
+    movers: [{ t: 'slider', p: [20, -0.5, 0], s: [11, 1, 8], to: [20, 0, 0], period: 8, mat: 'deck', color: '#a8672f' }],
     props: [...barrels([[64, 0.6, -2], [64, 0.6, 2], [66, 0.6, 0]]), ...crates([[58, 0.6, 4]])],
     coins: [...coinArc([3, 1, 0], [20, 1, 0], 4, 5), ...coinArc([36, 1, 0], [56, 1, 0], 5, 5)],
     stars: [[39, 1.5, 0.5]],

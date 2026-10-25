@@ -11,7 +11,7 @@ const VERSION = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev'
 
 // Change the first section per game. Keep the other two unless the game really does something different.
 const SECTIONS = [
-  ['Turbo Tumble Racers', 'Pull back and let go to launch a toy vehicle through 32 colourful 3D obstacle courses across four worlds, plus a free Playground. Smash blocks, bounce, collect coins and reach the finish. One finger is all it takes. Made for kids aged 4 and up; there is no losing, only trying again. Easy Mode in Settings gives bigger targets and aiming help.'],
+  ['Turbo Tumble Racers', 'Pull back and let go to launch a toy vehicle through 32 colourful 3D obstacle courses across four worlds, plus a free Playground. Smash blocks, bounce, collect coins and reach the finish. One finger is all it takes. Made for kids aged 4 and up; there is no losing, only trying again. Easy Mode in Settings gives bigger targets and aiming help. Kids can build their own cars and levels and share them as a link or code; nothing is uploaded anywhere, the code itself holds the car or level.'],
   ['Your data', 'No ads, no accounts, no in-app purchases. Nothing is collected or sent anywhere. Progress is saved only on this device; deleting the app or clearing website data removes it. The game works offline once installed.'],
   ['Disclaimer', 'This game is provided "as is", free of charge and without warranty of any kind. You play on your own terms and at your own risk. The makers take no responsibility for any damage, loss or other consequences of using it. Adults are responsible for supervising children and their screen time.'],
 ];

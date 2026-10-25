@@ -11,11 +11,11 @@ import { aimFromDrag, assistAim, yawTo, yawDir, wrapAngle } from '../game/launch
 import { thresholds, starsFor, popupLabel } from '../game/scoring.js';
 import { levelById, levelIndex, LEVELS } from '../game/levels/index.js';
 import SOLUTIONS from '../game/levels/solutions.json';
-import { vehicleById } from '../game/vehicles.js';
+import { playerVehicle, BODIES } from '../game/garage.js';
 import { save, persist, recordLevel } from '../storage.js';
 import { LevelView } from '../render/levelView.js';
 import { CameraRig } from '../render/camera.js';
-import { goTitle, goLevels, startLevel } from './nav.js';
+import { goTitle, goLevels, startLevel, goBuilder, goWorkshop } from './nav.js';
 import { debugState } from '../debug.js';
 
 export const warmUp = () => initPhysics();
@@ -24,13 +24,17 @@ const IDLE_HINT = 5;
 const proj = new THREE.Vector3();
 
 export class PlayScene {
-  constructor(game, levelId, mode = 'adventure') {
+  // levelId may also be a level definition (custom levels); opts.custom is the builder's grid.
+  constructor(game, levelId, mode = 'adventure', opts = {}) {
     this.game = game;
     this.mode = mode;
-    this.level = levelById(levelId);
-    this.vehicleDef = vehicleById(save.vehicle);
-    const paint = this.vehicleDef.paints.find((p) => p.id === save.paint[this.vehicleDef.id]) || this.vehicleDef.paints[0];
-    this.paint = paint.color;
+    this.level = typeof levelId === 'object' ? levelId : levelById(levelId);
+    this.opts = opts;
+    const pv = playerVehicle(save);
+    this.vehicleDef = pv.def;
+    this.paint = pv.paint;
+    // Custom cars drive like the built-in vehicle with the same body, so they share its hints.
+    this.hintId = pv.base.custom ? BODIES[pv.base.body] : pv.base.id;
     this.t = 0; this.acc = 0; this.idle = 0; this.time = 0; this.timing = false;
     this.ready = false;
     this.paused = false;
@@ -65,7 +69,7 @@ export class PlayScene {
     this.rig.setAspect(this.game.r3d.aspect);
     if (playground) this.rig.introLen = 1.6;
     this.th = thresholds(this.level);
-    this.solutions = (SOLUTIONS[this.level.id] || {})[this.vehicleDef.id] || [];
+    this.solutions = (SOLUTIONS[this.level.id] || {})[this.hintId] || [];
     this.ready = true;
     this.introT = 0;
     this.onResize();
@@ -171,6 +175,7 @@ export class PlayScene {
 
   leave(where) {
     if (where === 'home' || this.mode === 'playground') goTitle(this.game);
+    else if (this.mode === 'custom') { if (this.opts.from === 'builder') goBuilder(this.game, this.opts.custom); else goWorkshop(this.game); }
     else goLevels(this.game, this.level.world, this.mode);
   }
   next() {
@@ -237,7 +242,12 @@ export class PlayScene {
     const sim = this.sim;
     const stars = starsFor(sim.score.total, this.th, true);
     const res = { kind: 'win', score: sim.score.total, stars, launches: sim.st.used, time: this.time, coins: sim.st.coins.length };
-    this.better = recordLevel(this.level.id, levelIndex(this.level.id), res);
+    if (this.mode === 'custom') {
+      // Home-made levels: finishing one proves it can be done, which unlocks sharing.
+      // No coins or records, so building coin-stuffed levels can't be used to farm coins.
+      if (this.opts.custom) { this.opts.custom.verified = true; persist(); }
+      this.better = {};
+    } else this.better = recordLevel(this.level.id, levelIndex(this.level.id), res);
     this.pendingResult = res;
     this.resultDelay = 1.8;
   }
@@ -442,7 +452,7 @@ export class PlayScene {
         else if (kind === 'time') { circle(ctx, ix - 30, iy, 15); fs(ctx, '#7ee8ff', 4); }
         label(ctx, txt, ix - 6, iy + 2, 26, '#ffffff', 'left');
       });
-      const hasNext = this.mode !== 'playground' && levelIndex(this.level.id) < LEVELS.length - 1;
+      const hasNext = this.mode !== 'playground' && this.mode !== 'custom' && levelIndex(this.level.id) < LEVELS.length - 1;
       this.oNext.visible = hasNext;
       const bs = hasNext ? [this.oRetry, this.oMap, this.oNext] : [this.oRetry, this.oMap];
       bs.forEach((b, i) => { b.x = V.w / 2 + (i - (bs.length - 1) / 2) * 150; b.y = by; b.draw(ctx, t); });

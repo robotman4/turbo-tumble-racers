@@ -9,6 +9,11 @@ import { initPhysics } from '../src/game/sim.js';
 import { LEVELS } from '../src/game/levels/index.js';
 import { VEHICLES } from '../src/game/vehicles.js';
 import { solve } from '../src/game/solver.js';
+import { applyUpgrades, MAX_UPGRADE } from '../src/game/garage.js';
+
+// Also prove every level with fully upgraded cars (ids like 'panda+max').
+const MAX = { turbo: MAX_UPGRADE, springs: MAX_UPGRADE, wings: MAX_UPGRADE, bumper: MAX_UPGRADE };
+const CARS = [...VEHICLES, ...VEHICLES.map((v) => ({ ...applyUpgrades(v, MAX), id: v.id + '+max' }))];
 
 const OUT = fileURLToPath(new URL('../src/game/levels/solutions.json', import.meta.url));
 await initPhysics();
@@ -18,7 +23,7 @@ let failed = 0;
 for (const level of LEVELS) {
   if (only.length && !only.includes(level.id)) continue;
   data[level.id] = data[level.id] || {};
-  for (const v of VEHICLES) {
+  for (const v of CARS) {
     const t0 = Date.now();
     const r = solve(level, v);
     const ms = Date.now() - t0;
