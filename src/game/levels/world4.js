@@ -20,7 +20,7 @@ export default [
     ],
     props: [...rocks([[20, 0.7, 2], [38, 0.7, 0]]), ...crystals(62, 0, 0, 2)],
     coins: [...coinArc([3, 1, 0], [19, 1, 0], 6, 6), ...coinArc([21, 1, 0], [37, 1, 2], 6, 6), ...coinArc([39, 1, 2], [55, 1, 0], 6, 6)],
-    stars: [[29, 12, 1]],
+    stars: [[28, 6, 1]],
     routes: { main: [[0, 0], [20, 0], [38, 2], [58, 0]] },
   },
   {
@@ -36,7 +36,7 @@ export default [
     ],
     props: [...crystals(66, 0, 0, 3)],
     coins: [...coinRing([18, 2, 0], 2, 5), ...coinRing([31, 2.5, 1], 2, 5), ...coinRing([44, 2, -1], 2, 5)],
-    stars: [[37, 10, 0]],
+    stars: [[38.5, 5.5, 0]],
     routes: { main: [[0, 0], [18, 0], [31, 1], [44, -1], [62, 0]] },
   },
   {
@@ -53,7 +53,7 @@ export default [
     gadgets: [{ t: 'fan', p: [18, 9, 0], s: [6, 18, 6], yaw: 0, pitch: 90, power: 15 }, { t: 'fan', p: [23, 15, 0], s: [4, 6, 6], yaw: 0, pitch: 0, power: 10, current: true }],
     props: [...crystals(38, 0, 12, 3)],
     coins: [...coinLine([18, 3, 0], [18, 15, 0], 6), ...coinLine([6, 1, 0], [13, 1, 0], 3)],
-    stars: [[18, 18, 0]],
+    stars: [[18, 6.5, 0]],
     routes: { main: [[0, 0], [18, 0], [34, 0]] },
   },
   {
@@ -69,7 +69,7 @@ export default [
     gadgets: [{ t: 'gravity', p: [24, 8, 0], s: [16, 16, 10], g: [0, 6, 0] }],
     props: [...rocks([[44, 9.8, -3], [44, 9.8, 3]]), ...crystals(50, 0, 9, 2)],
     coins: [...coinLine([16, 4, 0], [32, 12, 0], 7)],
-    stars: [[24, 16.5, 3]],
+    stars: [[24, 7.5, 3]],
     routes: { main: [[0, 0], [24, 0], [46, 0]] },
   },
   {
@@ -86,7 +86,7 @@ export default [
     gadgets: [{ t: 'trampoline', p: [34, 0, 0], r: 2, bounce: 11 }],
     props: [...rocks([[20, 0, -3], [20, 0, 3], [52, 4.7, -3], [52, 4.7, 3]]), ...crystals(60, 0, 4, 3)],
     coins: [...coinArc([4, 1, 0], [18, 0, 0], 5, 5), ...coinArc([22, 1, 0], [33, 2, 0], 5, 4), ...coinArc([35, 2, 0], [50, 5, 0], 7, 5)],
-    stars: [[42, 12, 0]],
+    stars: [[42.5, 8, 0.5]],
     routes: { main: [[0, 0], [19, 0], [34, 0], [56, 0]] },
   },
   {
@@ -107,7 +107,7 @@ export default [
     ],
     props: [...rocks([[64, 0.7, -2], [64, 0.7, 2]]), ...crystals(66, 0, 0, 2)],
     coins: [...coinRing([20, 2, 0], 4, 6), ...coinRing([40, 2, 0], 4, 6)],
-    stars: [[30, 8, 0]],
+    stars: [[29.5, 3, 0]],
     routes: { main: [[0, 0], [20, 0], [40, 0], [60, 0]] },
   },
   {
@@ -127,7 +127,7 @@ export default [
     movers: [{ t: 'float', p: [60, 1, 0], s: [8, 1, 8], bob: 2, period: 5, color: '#9a94c6' }],
     props: [...crystals(90, 0, 3, 3), ...rocks([[60, 2.2, 2]])],
     coins: [...coinLine([6, 1, 0], [20, 1, 0], 4), ...coinArc([28, 4, 0], [56, 6, 0], 6, 8), ...coinArc([62, 4, 0], [78, 4, 0], 5, 5)],
-    stars: [[48, 13, 0], [60, 3, 0]],
+    stars: [[46.5, 6.5, 0], [60, 3, 0]],
     routes: { main: [[0, 0], [24, 0], [60, 0], [86, 0]] },
   },
   {
