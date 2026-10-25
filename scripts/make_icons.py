@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Generate the PWA / home screen icons into public/icons. Needs Pillow.
+"""Generate the PWA / home screen icons into public/icons, and (when the Capacitor projects exist)
+the iOS and Android app icons and splash screens. Needs Pillow.
 Turbo Tumble Racers: a blue kart with a panda driver flying off a striped ramp."""
 from pathlib import Path
 import math
@@ -80,3 +81,47 @@ base.resize((192, 192), Image.LANCZOS).save(OUT / "icon-192.png")
 base.resize((180, 180), Image.LANCZOS).save(OUT / "apple-touch-icon.png")
 mask.resize((512, 512), Image.LANCZOS).save(OUT / "icon-maskable-512.png")
 print("icons written to", OUT)
+
+# ---------- native apps (Capacitor) ----------
+ROOT = Path(__file__).resolve().parent.parent
+BLUE = (42, 127, 212)
+
+
+def splash(size):
+    """Brand blue with the icon in the middle (what shows while the app starts)."""
+    img = Image.new("RGB", size, BLUE)
+    k = int(min(size) * 0.32)
+    icon = base.resize((k, k), Image.LANCZOS)
+    m = Image.new("L", (k, k), 0)
+    ImageDraw.Draw(m).rounded_rectangle([0, 0, k - 1, k - 1], radius=int(k * 0.22), fill=255)
+    img.paste(icon, ((size[0] - k) // 2, (size[1] - k) // 2), m)
+    return img
+
+
+ios = ROOT / "ios/App/App/Assets.xcassets"
+if ios.exists():
+    base.convert("RGB").save(ios / "AppIcon.appiconset/AppIcon-512@2x.png")
+    for name in ("splash-2732x2732.png", "splash-2732x2732-1.png", "splash-2732x2732-2.png"):
+        splash((2732, 2732)).save(ios / "Splash.imageset" / name)
+    print("iOS icon and splash written")
+
+res = ROOT / "android/app/src/main/res"
+if res.exists():
+    for dpi, n in {"mdpi": 48, "hdpi": 72, "xhdpi": 96, "xxhdpi": 144, "xxxhdpi": 192}.items():
+        d = res / f"mipmap-{dpi}"
+        base.resize((n, n), Image.LANCZOS).save(d / "ic_launcher.png")
+        rnd = Image.new("RGBA", (n, n), (0, 0, 0, 0))
+        circle = Image.new("L", (n, n), 0)
+        ImageDraw.Draw(circle).ellipse([0, 0, n - 1, n - 1], fill=255)
+        rnd.paste(base.resize((n, n), Image.LANCZOS), (0, 0), circle)
+        rnd.save(d / "ic_launcher_round.png")
+        # Adaptive icon foreground: 108dp canvas, the launcher masks it to its own shape.
+        f = n * 108 // 48
+        mask.resize((f, f), Image.LANCZOS).save(d / "ic_launcher_foreground.png")
+    (res / "values/ic_launcher_background.xml").write_text(
+        '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="ic_launcher_background">#2A7FD4</color>\n</resources>\n')
+    for png in res.glob("drawable*/splash.png"):
+        w, h = Image.open(png).size
+        splash((w, h)).save(png)
+    print("Android icons and splash written")
+

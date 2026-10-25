@@ -4,7 +4,9 @@
 import { V } from './core.js';
 import { rr, fs, FONT, INK } from './draw.js';
 
-export function shareUrl(code) { return location.origin + location.pathname + '#' + code; }
+/* global __NATIVE__, __PUBLIC_URL__ */
+// Inside the store apps the page address is local to the phone, so links go to the web version.
+export function shareUrl(code) { return (__NATIVE__ ? __PUBLIC_URL__ : location.origin + location.pathname) + '#' + code; }
 
 // Returns 'shared', 'copied' or 'shown'.
 export async function shareCode(code, kind) {

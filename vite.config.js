@@ -11,6 +11,12 @@ const VERSION = `${new Date().toISOString().slice(0, 10)} (${sha})`;
 // from the repository name, so a repo created from this template needs no edits here.
 const base = process.env.BASE_PATH || '/';
 
+// NATIVE=1 builds the copy that goes inside the iOS and Android apps (Capacitor, see
+// capacitor.config.json). The stores deliver updates there, so no service worker and no update
+// button; shared links point at the public web version instead of the app's local address.
+const NATIVE = process.env.NATIVE === '1';
+const PUBLIC_URL = process.env.PUBLIC_URL || 'https://robotman4.github.io/turbo-tumble-racers/';
+
 // Change these per game.
 const NAME = 'Turbo Tumble Racers';
 const SHORT = 'Turbo Tumble';
@@ -20,9 +26,10 @@ const THEME = '#2a7fd4';
 export default defineConfig({
   base,
   build: { chunkSizeWarningLimit: 4000 },
-  define: { __APP_VERSION__: JSON.stringify(VERSION) },
+  define: { __APP_VERSION__: JSON.stringify(VERSION), __NATIVE__: JSON.stringify(NATIVE), __PUBLIC_URL__: JSON.stringify(PUBLIC_URL) },
   plugins: [
     VitePWA({
+      disable: NATIVE,
       // 'prompt': a new version waits until the player taps the update button (see src/pwa.js).
       registerType: 'prompt',
       includeAssets: ['icons/apple-touch-icon.png'],

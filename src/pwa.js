@@ -12,7 +12,9 @@ try {
   if (localStorage.getItem(FLAG)) { pwa.justUpdated = true; localStorage.removeItem(FLAG); }
 } catch (e) { /* ignore */ }
 
-const updateSW = registerSW({
+/* global __NATIVE__ */
+// The store apps (NATIVE build) are updated by the App Store / Google Play: no service worker.
+const updateSW = __NATIVE__ ? () => {} : registerSW({
   onNeedRefresh() { pwa.ready = true; },
   onRegisteredSW(_url, reg) {
     if (!reg) return;
